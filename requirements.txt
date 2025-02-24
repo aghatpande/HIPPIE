@@ -1,4 +1,7 @@
-pandas==1.0.3
-numpy==1.18.2
-matplotlib==3.2.1
-seaborn==0.10.0
+pandas
+numpy
+matplotlib
+scikit-learn
+pytorch-lightning
+wandb
+seaborn

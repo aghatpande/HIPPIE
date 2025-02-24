@@ -4,21 +4,20 @@ High-dimensional Interpretation for Physiological Patterns in Intercellular Elec
 
 To run HIPPIE
 
-git clone ...
+git clone https://github.com/braingeneers/Hippie
 
-conda create ...
+conda create --name hippie python=3.10
 
-conda activate ...
+conda activate hippie
 
-pip install -r ...
+pip install -r requirements.txt
 
+Starting from the main folder run with the following parameters:
 
-Starting from the main folder run with the following parameters
-
-- z_dim = 
-- weight decay
-- Learning rate
-- Beta
-- Dataset
+- z_dim (Latent space dimensionality) = 10
+- weight decay = 
+- Learning rate = 
+- Beta = 
+- Dataset (Dataset folder) = cellexplorer-area
 
 python /scripts/train_model.py --z_dim ${HIDDENSIZE} --weight-decay ${WEIGHT_DECAY} --learning-rate ${LEARNING_RATE} --beta=${BETA} --dataset ${DATASET}
