@@ -25,3 +25,12 @@ Starting from the main folder run with the following parameters:
 ```bash
 python /scripts/train_model.py --z_dim 10 --weight-decay 0.01 --learning-rate 0.001 --beta 0.5 --dataset cellexplorer-area
 ```
+
+From trained model
+```bash
+python inference_from_trained_model.py --dataset cellexplorer \
+                   --wave-checkpoint path/to/wave_model.pt \
+                   --time-checkpoint path/to/time_model.pt \
+                   --joint-checkpoint path/to/joint_model.pt
+                   --output-dir ./embeddings_results
+```
