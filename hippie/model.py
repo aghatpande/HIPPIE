@@ -78,6 +78,13 @@ class hippieUnimodalEmbeddingModelCVAE(pl.LightningModule):
         super().__init__()
         self.alpha_max = alpha_max
         self.beta = beta
+        self.model = base_model
+        self.lr = learning_rate
+        self.weight_decay = weight_decay
+        self.mse_loss = nn.MSELoss()
+        self.val_loss = []
+        self.train_loss = []
+        self.optimizer = optim.AdamW(self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
 
     def training_step(self, batch, batch_idx):
         data, labels = batch

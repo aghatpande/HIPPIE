@@ -7,7 +7,7 @@ name = "hippie"
 version = "0.1.0"
 description = "A package to perform classification and clustering of neurons based on HD-MEA recordings"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.9"
 license = {file = "LICENSE"}
 authors = [
     {name = "Jesus Gonzalez Ferrer", email = "jesusgzlezferrer@gmail.com"},
