@@ -24,14 +24,27 @@ parser.add_argument('--learning-rate', type=float, default=0.001)
 parser.add_argument('--beta', type=float, default=1)
 parser.add_argument('--dataset', type=str, default="cellexplorer-celltype")
 parser.add_argument('--upload-model', action='store_true')
+parser.add_argument('--wandb-tag', type=str, default="no_curr_sup_pretrain_data")
+parser.add_argument('--project', type=str, default="HIPPIE final benchmarks w finetune without labels")
+parser.add_argument('--finetune-without-labels', type=bool, default=True)
+parser.add_argument('--pretrain-max-epochs', type=int, default=1)
+parser.add_argument('--finetune-max-epochs', type=int, default=1)
+parser.add_argument('--supervised-max-epochs', type=int, default=1)
+parser.add_argument('--batch-size', type=int, default=512)
+parser.add_argument('--supervised-batch-size', type=int, default=64)
+parser.add_argument('--early-stopping-patience', type=int, default=30)
+parser.add_argument('--gradient-clip-val', type=float, default=1.0)
+parser.add_argument('--train-val-split', type=float, default=0.8)
+parser.add_argument('--finetune-split', type=float, default=0.1)
+parser.add_argument('--limit-train-batches', type=float, default=None)
+parser.add_argument('--limit-val-batches', type=float, default=None)
 
-wandb_tag = "no_curr_sup_pretrain_data"
 args = parser.parse_args()
 accelerator = "gpu" if torch.cuda.is_available() else "cpu"
-limit_train_batches = None
-limit_val_batches = None
-project = "HIPPIE final benchmarks w finetune without labels"
-FINETUNE_WITHOUT_LABELS = True
+limit_train_batches = args.limit_train_batches
+limit_val_batches = args.limit_val_batches
+project = args.project
+FINETUNE_WITHOUT_LABELS = args.finetune_without_labels
 
 torch.manual_seed(42)
 
@@ -88,7 +101,7 @@ all_isi_dataset = torch.utils.data.ConcatDataset(datasets_isi)
 
 print(f"Total waveforms {all_waveform_dataset.__len__()} and total isi {all_isi_dataset.__len__()}")
 print(f"Num labels {len(labels)}")
-prop = 0.8
+prop = args.train_val_split
 indices = list(range(len(all_waveform_dataset)))
 train_indices, test_indices = random_split(indices, [int(prop * len(indices)), len(indices) - int(prop * len(indices))])
 
@@ -98,10 +111,10 @@ test_dataset_wave = torch.utils.data.Subset(all_waveform_dataset, test_indices)
 train_dataset_time = torch.utils.data.Subset(all_isi_dataset, train_indices)
 test_dataset_time = torch.utils.data.Subset(all_isi_dataset, test_indices)
 
-train_loader_wave = torch.utils.data.DataLoader(train_dataset_wave, batch_size=512, shuffle=True)
-test_loader_wave = torch.utils.data.DataLoader(test_dataset_wave, batch_size=512, shuffle=False)
-train_loader_time = torch.utils.data.DataLoader(train_dataset_time, batch_size=512, shuffle=True)
-test_loader_time = torch.utils.data.DataLoader(test_dataset_time, batch_size=512, shuffle=False)
+train_loader_wave = torch.utils.data.DataLoader(train_dataset_wave, batch_size=args.batch_size, shuffle=True)
+test_loader_wave = torch.utils.data.DataLoader(test_dataset_wave, batch_size=args.batch_size, shuffle=False)
+train_loader_time = torch.utils.data.DataLoader(train_dataset_time, batch_size=args.batch_size, shuffle=True)
+test_loader_time = torch.utils.data.DataLoader(test_dataset_time, batch_size=args.batch_size, shuffle=False)
 
 wave_model = hippieUnimodalCVAE(z_dim=args.z_dim, output_size=50, class_hidden_dim=5, num_sources=num_sources, num_classes=5)
 time_model = hippieUnimodalCVAE(z_dim=args.z_dim, output_size=100, class_hidden_dim=5, num_sources=num_sources, num_classes=5)
@@ -111,15 +124,15 @@ time_model = hippieUnimodalEmbeddingModelCVAE(time_model, learning_rate=args.lea
 
 wave_modelcheckpoint = pl.callbacks.ModelCheckpoint(monitor="val_loss", save_top_k=1, mode="min")
 time_modelcheckpoint = pl.callbacks.ModelCheckpoint(monitor="val_loss", save_top_k=1, mode="min")
-early_stop_wave = pl.callbacks.EarlyStopping(monitor="val_loss", patience=30, mode="min")
-early_stop_time = pl.callbacks.EarlyStopping(monitor="val_loss", patience=30, mode="min")
+early_stop_wave = pl.callbacks.EarlyStopping(monitor="val_loss", patience=args.early_stopping_patience, mode="min")
+early_stop_time = pl.callbacks.EarlyStopping(monitor="val_loss", patience=args.early_stopping_patience, mode="min")
 
 wandb_logger1 = pl.loggers.WandbLogger(
     project=project,
-    name=f"{wandb_tag}{args.dataset}_wave_model_{args.z_dim}",
+    name=f"{args.wandb_tag}{args.dataset}_wave_model_{args.z_dim}",
 )
 trainer_wave = pl.Trainer(
-    max_epochs=150,
+    max_epochs=args.pretrain_max_epochs,
     accelerator=accelerator,
     logger=wandb_logger1,
     callbacks=[wave_modelcheckpoint, early_stop_wave],
@@ -130,16 +143,16 @@ trainer_wave.fit(wave_model, train_loader_wave, test_loader_wave)
 
 wandb_logger2 = pl.loggers.WandbLogger(
     project=project,
-    name=f"{wandb_tag}{args.dataset}_time_model_{args.z_dim}",
+    name=f"{args.wandb_tag}{args.dataset}_time_model_{args.z_dim}",
 )
 trainer_time = pl.Trainer(
-    max_epochs=150,
+    max_epochs=args.pretrain_max_epochs,
     accelerator=accelerator,
     logger=wandb_logger2,
     callbacks=[time_modelcheckpoint, early_stop_time],
     limit_train_batches=limit_train_batches,
     limit_val_batches=limit_val_batches,
-    gradient_clip_val=1,
+    gradient_clip_val=args.gradient_clip_val,
 )
 trainer_time.fit(time_model, train_loader_time, test_loader_time)
 
@@ -162,7 +175,7 @@ finetune_dataset_wave = EphysDatasetLabeled(wf_ft, isi_ft, label_ft, mode="wave"
 finetune_dataset_time = EphysDatasetLabeled(wf_ft, isi_ft, label_ft, mode="time", normalize=False)
 
 if FINETUNE_WITHOUT_LABELS:
-    prop = 0.1
+    prop = args.finetune_split
     indices = list(range(len(finetune_dataset_wave)))
     
     if os.path.exists(f"datasets/{args.dataset}/metadata.csv") and "chip" in args.dataset:
@@ -182,23 +195,23 @@ if FINETUNE_WITHOUT_LABELS:
     test_finetune_dataset = torch.utils.data.Subset(finetune_dataset_wave, test_indices)
 
     train_finetune_loader_wave = torch.utils.data.DataLoader(
-        train_finetune_dataset, batch_size=512, shuffle=False
+        train_finetune_dataset, batch_size=args.batch_size, shuffle=False
     )
     test_finetune_loader_wave = torch.utils.data.DataLoader(
-        test_finetune_dataset, batch_size=512, shuffle=False
+        test_finetune_dataset, batch_size=args.batch_size, shuffle=False
     )
 
     train_finetune_dataset_time = torch.utils.data.Subset(finetune_dataset_time, train_indices)
     test_finetune_dataset_time = torch.utils.data.Subset(finetune_dataset_time, test_indices)
     train_finetune_loader_time = torch.utils.data.DataLoader(
-        train_finetune_dataset_time, batch_size=512, shuffle=False
+        train_finetune_dataset_time, batch_size=args.batch_size, shuffle=False
     )
     test_finetune_loader_time = torch.utils.data.DataLoader(
-        test_finetune_dataset_time, batch_size=512, shuffle=False
+        test_finetune_dataset_time, batch_size=args.batch_size, shuffle=False
     )
 
     trainer_wave = pl.Trainer(
-        max_epochs=50,
+        max_epochs=args.finetune_max_epochs,
         accelerator=accelerator,
         logger=wandb_logger1,
         callbacks=[wave_modelcheckpoint, early_stop_wave],
@@ -208,13 +221,13 @@ if FINETUNE_WITHOUT_LABELS:
     trainer_wave.fit(wave_model, train_finetune_loader_wave, test_finetune_loader_wave)
     
     trainer_time = pl.Trainer(
-        max_epochs=50,
+        max_epochs=args.finetune_max_epochs,
         accelerator=accelerator,
         logger=wandb_logger2,
         callbacks=[time_modelcheckpoint, early_stop_time],
         limit_train_batches=limit_train_batches,
         limit_val_batches=limit_val_batches,
-        gradient_clip_val=1,
+        gradient_clip_val=args.gradient_clip_val,
     )
     trainer_time.fit(time_model, train_finetune_loader_time, test_finetune_loader_time)
 
@@ -223,10 +236,10 @@ if FINETUNE_WITHOUT_LABELS:
     )
 else:
     finetune_loader_wave = torch.utils.data.DataLoader(
-        finetune_dataset_wave, batch_size=512, shuffle=False
+        finetune_dataset_wave, batch_size=args.batch_size, shuffle=False
     )
     finetune_loader_time = torch.utils.data.DataLoader(
-        finetune_dataset_time, batch_size=512, shuffle=False
+        finetune_dataset_time, batch_size=args.batch_size, shuffle=False
     )
     finetune_embeddings_wave, finetune_embeddings_time, finetune_joint_embeddings = get_embeddings(
         finetune_loader_wave, finetune_loader_time, wave_model, time_model
@@ -270,7 +283,7 @@ else:
 
 # Create train/val split for supervised learning
 indices = list(range(len(supervised_wf)))
-train_size = int(0.8 * len(indices))
+train_size = int(args.train_val_split * len(indices))
 train_indices, val_indices = random_split(indices, [train_size, len(indices) - train_size])
 
 # Extract train/val data
@@ -304,16 +317,16 @@ dataset_val_time = EphysDatasetLabeled(
 
 train_sampler = BalancedBatchSampler(dataset_train_wave, label_train)
 train_loader_wave = torch.utils.data.DataLoader(
-    dataset_train_wave, batch_size=64, sampler=train_sampler, num_workers=4
+    dataset_train_wave, batch_size=args.supervised_batch_size, sampler=train_sampler, num_workers=4
 )
 test_loader_wave = torch.utils.data.DataLoader(
-    dataset_val_wave, batch_size=64, shuffle=False, num_workers=4
+    dataset_val_wave, batch_size=args.supervised_batch_size, shuffle=False, num_workers=4
 )
 train_loader_time = torch.utils.data.DataLoader(
-    dataset_train_time, batch_size=64, sampler=train_sampler, num_workers=4
+    dataset_train_time, batch_size=args.supervised_batch_size, sampler=train_sampler, num_workers=4
 )
 test_loader_time = torch.utils.data.DataLoader(
-    dataset_val_time, batch_size=64, shuffle=False, num_workers=4
+    dataset_val_time, batch_size=args.supervised_batch_size, shuffle=False, num_workers=4
 )
 
 # Load models for supervised learning
@@ -335,38 +348,38 @@ time_model.load_state_dict(time_seq["state_dict"], strict=False)
 # Set up callbacks and loggers for supervised training
 wave_modelcheckpoint = pl.callbacks.ModelCheckpoint(monitor="val_loss", save_top_k=1, mode="min")
 time_modelcheckpoint = pl.callbacks.ModelCheckpoint(monitor="val_loss", save_top_k=1, mode="min")
-early_stop_wave = pl.callbacks.EarlyStopping(monitor="val_loss", patience=30, mode="min")
-early_stop_time = pl.callbacks.EarlyStopping(monitor="val_loss", patience=30, mode="min")
+early_stop_wave = pl.callbacks.EarlyStopping(monitor="val_loss", patience=args.early_stopping_patience, mode="min")
+early_stop_time = pl.callbacks.EarlyStopping(monitor="val_loss", patience=args.early_stopping_patience, mode="min")
 lr_monitor_wave = pl.callbacks.LearningRateMonitor(logging_interval="step")
 lr_monitor_time = pl.callbacks.LearningRateMonitor(logging_interval="step")
 
 wandb_logger1 = pl.loggers.WandbLogger(
     project=project,
-    name=f"{wandb_tag}{args.dataset}finetune_wave_model_{dataset}",
+    name=f"{args.wandb_tag}{args.dataset}finetune_wave_model_{dataset}",
 )
 trainer_wave = pl.Trainer(
-    max_epochs=50,
+    max_epochs=args.supervised_max_epochs,
     accelerator=accelerator,
     logger=wandb_logger1,
     callbacks=[wave_modelcheckpoint, early_stop_wave, lr_monitor_wave],
     limit_train_batches=limit_train_batches,
     limit_val_batches=limit_val_batches,
-    gradient_clip_val=1,
+    gradient_clip_val=args.gradient_clip_val,
 )
 trainer_wave.fit(wave_model, train_loader_wave, test_loader_wave)
 
 wandb_logger2 = pl.loggers.WandbLogger(
     project=project,
-    name=f"{wandb_tag}{args.dataset}finetune_time_mode_{dataset}",
+    name=f"{args.wandb_tag}{args.dataset}finetune_time_mode_{dataset}",
 )
 trainer_time = pl.Trainer(
-    max_epochs=50,
+    max_epochs=args.supervised_max_epochs,
     accelerator=accelerator,
     logger=wandb_logger2,
     callbacks=[time_modelcheckpoint, early_stop_time, lr_monitor_time],
     limit_train_batches=limit_train_batches,
     limit_val_batches=limit_val_batches,
-    gradient_clip_val=1,
+    gradient_clip_val=args.gradient_clip_val,
 )
 trainer_time.fit(time_model, train_loader_time, test_loader_time)
 
