@@ -71,7 +71,7 @@ class hippieUnimodalCVAE(nn.Module):
         return encoded, mu, logvar, decoded
 
 
-class hippieUnimodalEmbeddingModelCVAE(nn.Module):
+class hippieUnimodalEmbeddingModelCVAE(pl.LightningModule):
     def __init__(
         self, base_model, alpha_max=0.5, learning_rate=0.01, weight_decay=0.01, beta=1,
     ):
