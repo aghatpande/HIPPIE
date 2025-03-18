@@ -2,8 +2,9 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
+
 class ResizeConv1d(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size, scale_factor, mode='nearest'):
+    def __init__(self, in_channels, out_channels, kernel_size, scale_factor, mode="nearest"):
         super().__init__()
         self.scale_factor = scale_factor
         self.mode = mode
@@ -14,10 +15,11 @@ class ResizeConv1d(nn.Module):
         x = self.conv(x)
         return x
 
+
 class BasicBlockEnc(nn.Module):
     def __init__(self, in_planes, stride=1):
         super().__init__()
-        planes = in_planes*stride
+        planes = in_planes * stride
 
         self.conv1 = nn.Conv1d(in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
         self.bn1 = nn.BatchNorm1d(planes)
@@ -28,8 +30,7 @@ class BasicBlockEnc(nn.Module):
             self.shortcut = nn.Sequential()
         else:
             self.shortcut = nn.Sequential(
-                nn.Conv1d(in_planes, planes, kernel_size=1, stride=stride, bias=False),
-                nn.BatchNorm1d(planes)
+                nn.Conv1d(in_planes, planes, kernel_size=1, stride=stride, bias=False), nn.BatchNorm1d(planes)
             )
 
     def forward(self, x):
@@ -39,12 +40,12 @@ class BasicBlockEnc(nn.Module):
         out = F.leaky_relu(out)
         return out
 
-class BasicBlockDec(nn.Module):
 
+class BasicBlockDec(nn.Module):
     def __init__(self, in_planes, stride=1):
         super().__init__()
 
-        planes = int(in_planes/stride)
+        planes = int(in_planes / stride)
 
         self.conv2 = nn.Conv1d(in_planes, in_planes, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn2 = nn.BatchNorm1d(in_planes)
@@ -58,8 +59,7 @@ class BasicBlockDec(nn.Module):
             self.conv1 = ResizeConv1d(in_planes, planes, kernel_size=3, scale_factor=stride)
             self.bn1 = nn.BatchNorm1d(planes)
             self.shortcut = nn.Sequential(
-                ResizeConv1d(in_planes, planes, kernel_size=3, scale_factor=stride),
-                nn.BatchNorm1d(planes)
+                ResizeConv1d(in_planes, planes, kernel_size=3, scale_factor=stride), nn.BatchNorm1d(planes)
             )
 
     def forward(self, x):
@@ -69,9 +69,9 @@ class BasicBlockDec(nn.Module):
         out = F.leaky_relu(out)
         return out
 
-class ResNet18Enc(nn.Module):
 
-    def __init__(self, num_blocks=[2,2,2,2], z_dim=10, nc=1):
+class ResNet18Enc(nn.Module):
+    def __init__(self, num_blocks=[2, 2, 2, 2], z_dim=10, nc=1):
         super().__init__()
         self.in_planes = 64
         self.z_dim = z_dim
@@ -84,7 +84,7 @@ class ResNet18Enc(nn.Module):
         self.linear = nn.Linear(512, 2 * z_dim)
 
     def _make_layer(self, BasicBlockEnc, planes, num_blocks, stride):
-        strides = [stride] + [1]*(num_blocks-1)
+        strides = [stride] + [1] * (num_blocks - 1)
         layers = []
         for stride in strides:
             layers += [BasicBlockEnc(self.in_planes, stride)]
@@ -102,9 +102,9 @@ class ResNet18Enc(nn.Module):
         x = self.linear(x)
         return x
 
-class ResNet18Dec(nn.Module):
 
-    def __init__(self, output_size: int=64, num_blocks=[2,2,2,2], z_dim=10, nc=1):
+class ResNet18Dec(nn.Module):
+    def __init__(self, output_size: int = 64, num_blocks=[2, 2, 2, 2], z_dim=10, nc=1):
         super().__init__()
         self.in_planes = 512
 
@@ -118,7 +118,7 @@ class ResNet18Dec(nn.Module):
         self.linear_out = nn.Linear(64, output_size)
 
     def _make_layer(self, BasicBlockDec, planes, num_blocks, stride):
-        strides = [stride] + [1]*(num_blocks-1)
+        strides = [stride] + [1] * (num_blocks - 1)
         layers = []
         for stride in reversed(strides):
             layers += [BasicBlockDec(self.in_planes, stride)]
@@ -127,7 +127,7 @@ class ResNet18Dec(nn.Module):
 
     def forward(self, x):
         x = self.linear(x)
-        x = x.unsqueeze(-1) # add spatial dim back 
+        x = x.unsqueeze(-1)  # add spatial dim back
         x = F.interpolate(x, scale_factor=4)
         x = self.layer4(x)
         x = self.layer3(x)
@@ -136,9 +136,10 @@ class ResNet18Dec(nn.Module):
         x = self.conv1(x)
         x = x.view(x.size(0), -1)
         x = self.linear_out(x)
-        x = x.unsqueeze(1) # add back channel
+        x = x.unsqueeze(1)  # add back channel
 
         return x
+
 
 class VAE(nn.Module):
     def __init__(self, z_dim):
@@ -151,8 +152,9 @@ class VAE(nn.Module):
         decoded = self.decoder(encoded)
         return encoded, decoded
 
+
 def test_decoder():
-    sample = torch.randn(8, 20) # embedding shape is always the same 
+    sample = torch.randn(8, 20)  # embedding shape is always the same
     model = ResNet18Dec(output_size=50)
     output = model(sample)
     assert output.shape == (8, 1, 50)
@@ -161,6 +163,7 @@ def test_decoder():
     model = ResNet18Dec(output_size=100)
     output = model(sample)
     assert output.shape == (8, 1, 100)
+
 
 if __name__ == "__main__":
     test_decoder()

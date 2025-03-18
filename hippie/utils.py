@@ -43,9 +43,7 @@ def generate_kfolds(dataset_path):
     # Load the cell explorer data
     cell_explorer_wf = pd.read_csv(f"datasets/{dataset_path}/waveforms.csv")
     cell_explorer_isi = pd.read_csv(f"datasets/{dataset_path}/isi_dist.csv")
-    cell_explorer_labels = pd.read_csv(
-        f"../datasets/{dataset_path}/celltypes.csv", index_col=0
-    )
+    cell_explorer_labels = pd.read_csv(f"../datasets/{dataset_path}/celltypes.csv", index_col=0)
 
     # Turn into numpy arrays
     cell_explorer_wf = cell_explorer_wf.to_numpy()
@@ -71,13 +69,12 @@ def generate_kfolds(dataset_path):
 
     return folds
 
+
 # Try K nearest neighbor
 def get_embeddings(dataloader_wave, dataloader_time, wave_model, time_model):
     embedding_waveform = []
     embedding_isi = []
-    for i, ((wave, label_wave), (time, label_time)) in enumerate(
-        zip(dataloader_wave, dataloader_time)
-    ):
+    for i, ((wave, label_wave), (time, label_time)) in enumerate(zip(dataloader_wave, dataloader_time)):
         assert (label_wave == label_time).all()
         w_out = wave_model((wave, label_wave))
         t_out = time_model((time, label_time))
