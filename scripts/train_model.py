@@ -18,7 +18,7 @@ from sklearn.metrics import confusion_matrix
 from sklearn.preprocessing import LabelEncoder
     
 parser = argparse.ArgumentParser()
-parser.add_argument("--z_dim", type=int, default=64, required=False)
+parser.add_argument("--z_dim", type=int, default=5, required=False)
 parser.add_argument('--weight-decay', type=float, default=0.01)
 parser.add_argument('--learning-rate', type=float, default=0.001)
 parser.add_argument('--beta', type=float, default=1)
