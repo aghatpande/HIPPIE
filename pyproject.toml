@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "A package to perform classification and clustering of neurons based on HD-MEA recordings"
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "IDK", file = "LICENSE"}
+license = {file = "LICENSE"}
 authors = [
     {name = "Jesus Gonzalez Ferrer", email = "jesusgzlezferrer@gmail.com"},
     {name = "Julian Lehrer", email = "jlehrer@ucsc.com"}

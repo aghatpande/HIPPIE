@@ -97,7 +97,7 @@ dataset_files = {
     "extracellular-mouse-a1": 1,
     "cellexplorer-celltype": 3,
     "cellexplorer-area": 3,
-    "justacellular-mouse-s1-celltype": 4,
+    "juxtacellular-mouse-s1-celltype": 4,
     "juxtacellular-mouse-s1-area": 4,
     "allenscope-neuropixel": 3,
     "neonatal-mouse-brain-slice": 2,

@@ -1,3 +1,8 @@
+#Project files
+scripts/train_model_api.py
+hippie/hippie_api.py
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
