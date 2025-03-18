@@ -47,7 +47,7 @@ parser.add_argument(
 parser.add_argument(
     '--dataset',
     type=str,
-    default="cellexplorer",
+    default="cellexplorer-celltype",
 )
 
 parser.add_argument('--upload-model', action='store_true')
@@ -66,34 +66,46 @@ FINETUNE_WITHOUT_LABELS = True
 
 # Seed
 torch.manual_seed(42)
-autocurated_wf = pd.read_csv("datasets/autocurated/waveforms.csv")
-autocurated_isi = pd.read_csv("datasets/autocurated/isi_dist.csv")
-manual_templates = pd.read_csv("datasets/unlabeled_templates/waveforms.csv")
-manual_isi = pd.read_csv("datasets/unlabeled_templates/isi_dist.csv")
+
+# autocurated_wf = pd.read_csv("datasets/autocurated/waveforms.csv")
+# autocurated_isi = pd.read_csv("datasets/autocurated/isi_dist.csv")
+# manual_templates = pd.read_csv("datasets/unlabeled_templates/waveforms.csv")
+# manual_isi = pd.read_csv("datasets/unlabeled_templates/isi_dist.csv")
+
+# dataset_files = {
+#     "a1data-remove-undef": 1,
+#     "autocurated": 2,
+#     "unlabeled_templates": 2,
+#     "cellexplorer": 3,
+#     "cellexplorer-area": 3,
+#     "jianing-layer-cell-fig3": 4,
+#     "jianing-area": 4,
+#     "cellexplorer-physmap-test": 3,
+#     "visual-allen": 3,
+#     "mouse-slice-area": 2,
+# }
+# all_dataset_files = dataset_files.copy()
+# all_dataset_files.update(
+#     {
+#         "biccuculine-dataset": 2,
+#         "cluster-distribution-cellline": 2,
+#         "chip19894": 2,
+#     }
+# )
 
 dataset_files = {
-    "a1data-remove-undef": 1,
-    "autocurated": 2,
-    "unlabeled_templates": 2,
-    "cellexplorer": 3,
+    "extracellular-mouse-a1": 1,
+    "cellexplorer-celltype": 3,
     "cellexplorer-area": 3,
-    "jianing-layer-cell-fig3": 4,
-    "jianing-area": 4,
-    "cellexplorer-physmap-test": 3,
-    "visual-allen": 3,
-    "mouse-slice-area": 2,
+    "justacellular-mouse-s1-celltype": 4,
+    "juxtacellular-mouse-s1-area": 4,
+    "allenscope-neuropixel": 3,
+    "neonatal-mouse-brain-slice": 2,
 }
 
 all_dataset_files = dataset_files.copy()
-all_dataset_files.update(
-    {
-        "biccuculine-dataset": 2,
-        "cluster-distribution-cellline": 2,
-        "chip19894": 2,
-    }
-)
 
-num_sources = max(dataset_files.values()) + 1
+num_sources = max(all_dataset_files.values()) + 1
 
 all_waveforms = []
 all_isi = []
@@ -101,13 +113,12 @@ labels = []
 datasets_wf = []
 datasets_isi = []
 
-if "jianing" in args.dataset:
-    dataset_files.pop("jianing-area")
-    dataset_files.pop("jianing-layer-cell-fig3")
+if "justacellular" in args.dataset:
+    dataset_files.pop("justacellular-mouse-s1-celltype")
+    dataset_files.pop("juxtacellular-mouse-s1-area")
 
 if "cellexplorer" in args.dataset:
-    dataset_files.pop("cellexplorer-physmap-test")
-    dataset_files.pop("cellexplorer")
+    dataset_files.pop("cellexplorer-celltype")
     dataset_files.pop("cellexplorer-area")
 
 for folder in dataset_files:

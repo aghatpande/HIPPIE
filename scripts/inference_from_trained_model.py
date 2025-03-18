@@ -23,7 +23,7 @@ parser.add_argument(
 parser.add_argument(
     '--dataset',
     type=str,
-    default="cellexplorer",
+    default="cellexplorer-celltype",
     help="Dataset to perform inference on"
 )
 parser.add_argument(
@@ -45,8 +45,11 @@ parser.add_argument(
     help="Directory to save embeddings and visualizations"
 )
 
+
+
 args = parser.parse_args()
 accelerator = "gpu" if torch.cuda.is_available() else "cpu"
+
 
 # Ensure output directory exists
 os.makedirs(args.output_dir, exist_ok=True)
