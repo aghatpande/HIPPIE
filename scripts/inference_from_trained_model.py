@@ -45,8 +45,6 @@ parser.add_argument(
     help="Directory to save embeddings and visualizations"
 )
 
-
-
 args = parser.parse_args()
 accelerator = "gpu" if torch.cuda.is_available() else "cpu"
 

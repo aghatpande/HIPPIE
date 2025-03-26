@@ -16,7 +16,7 @@ import numpy as np
 from torch.utils.data import random_split
 from sklearn.metrics import confusion_matrix
 from sklearn.preprocessing import LabelEncoder
-    
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--z_dim", type=int, default=5, required=False)
 parser.add_argument('--weight-decay', type=float, default=0.01)
@@ -131,6 +131,7 @@ wandb_logger1 = pl.loggers.WandbLogger(
     project=project,
     name=f"{args.wandb_tag}{args.dataset}_wave_model_{args.z_dim}",
 )
+
 trainer_wave = pl.Trainer(
     max_epochs=args.pretrain_max_epochs,
     accelerator=accelerator,
