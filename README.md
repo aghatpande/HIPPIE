@@ -19,6 +19,12 @@ conda activate hippie
 # Install the repo
 pip install .
 ```
+
+Installation should take less than 5 minutes in a normal desktop computer.
+
+The packages required are described in the pyproject.toml and requirements.txt file and they are:
+pandas,numpy,matplotlib,scikit-learn,pytorch-lightning,wandb and seaborn.
+
 ## To train a HIPPIE model. 
 
 Add the data you want to use to train your model as a new folder in the ./datasets folder. Follow the stablished naming convention
@@ -60,3 +66,7 @@ python inference_from_trained_model.py --dataset cellexplorer-celltype \
                    --checkpoint path/to/model_checkpoint.ckpt
                    --output-dir ./embeddings_results
 ```
+
+The outputs for training and inference are the trained models as .ckpt files and the embeddings of the test files as csv files.
+
+Training a new model and using it for inference should take around 45 minutes in a common computer with a consumer grade GPU.
