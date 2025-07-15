@@ -2,6 +2,7 @@
 scripts/train_model_api.py
 hippie/hippie_api.py
 /checkpoints/*
+/outputs/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
