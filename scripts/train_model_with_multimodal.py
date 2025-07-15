@@ -57,6 +57,7 @@ def main():
     parser.add_argument('--finetune-split', type=float, default=0.1)
     parser.add_argument('--limit-train-batches', type=float, default=None)
     parser.add_argument('--limit-val-batches', type=float, default=None)
+    parser.add_argument('--output-dir', type=str, default='.')
     
     # New arguments for multimodal approach
     parser.add_argument('--model-type', type=str, choices=['unimodal', 'multimodal'], default='unimodal',
@@ -69,7 +70,7 @@ def main():
     args = parser.parse_args()
     
     # Common setup
-    accelerator = "gpu" if torch.cuda.is_available() else "cpu"
+    accelerator = "gpu" if torch.cuda.is_available() or torch.backends.mps.is_available() else "cpu"
     limit_train_batches = args.limit_train_batches
     limit_val_batches = args.limit_val_batches
     project = args.project
@@ -338,13 +339,13 @@ def main():
         isi_df = pd.DataFrame(isi_dfs)
         joint_df = pd.DataFrame(joint_dfs)
         
-        wf_df.to_csv(f"pretraining_{args.dataset}_waveform_embeddings.csv")
-        isi_df.to_csv(f"pretraining_{args.dataset}_isi_embeddings.csv")
-        joint_df.to_csv(f"pretraining_{args.dataset}_joint_embeddings.csv")
+        wf_df.to_csv(f"{args.output_dir}/pretraining_{args.dataset}_waveform_embeddings.csv")
+        isi_df.to_csv(f"{args.output_dir}/pretraining_{args.dataset}_isi_embeddings.csv")
+        joint_df.to_csv(f"{args.output_dir}/pretraining_{args.dataset}_joint_embeddings.csv")
         
-        wandb.log_artifact(f"pretraining_{args.dataset}_waveform_embeddings.csv", name=f"pretraining_{args.dataset}_waveform_embeddings.csv", type=f"pretraining_{args.dataset}_waveform_embeddings.csv")
-        wandb.log_artifact(f"pretraining_{args.dataset}_isi_embeddings.csv", name=f"pretraining_{args.dataset}_isi_embeddings.csv", type=f"pretraining_{args.dataset}_isi_embeddings.csv")
-        wandb.log_artifact(f"pretraining_{args.dataset}_joint_embeddings.csv", name=f"pretraining_{args.dataset}_joint_embeddings.csv", type=f"pretraining_{args.dataset}_joint_embeddings.csv")
+        wandb.log_artifact(f"{args.output_dir}/pretraining_{args.dataset}_waveform_embeddings.csv", name=f"pretraining_{args.dataset}_waveform_embeddings.csv", type=f"pretraining_{args.dataset}_waveform_embeddings.csv")
+        wandb.log_artifact(f"{args.output_dir}/pretraining_{args.dataset}_isi_embeddings.csv", name=f"pretraining_{args.dataset}_isi_embeddings.csv", type=f"pretraining_{args.dataset}_isi_embeddings.csv")
+        wandb.log_artifact(f"{args.output_dir}/pretraining_{args.dataset}_joint_embeddings.csv", name=f"pretraining_{args.dataset}_joint_embeddings.csv", type=f"pretraining_{args.dataset}_joint_embeddings.csv")
         
         # Load supervised data for training
         dataset = args.dataset
@@ -548,13 +549,13 @@ def main():
         isi_df = pd.DataFrame(isi_dfs)
         joint_df = pd.DataFrame(joint_dfs)
         
-        wf_df.to_csv(f"{dataset}_waveform_knn.csv")
-        isi_df.to_csv(f"{dataset}_isi_knn.csv")
-        joint_df.to_csv(f"{dataset}_joint_knn.csv")
+        wf_df.to_csv(f"{args.output_dir}/{dataset}_waveform_knn.csv")
+        isi_df.to_csv(f"{args.output_dir}/{dataset}_isi_knn.csv")
+        joint_df.to_csv(f"{args.output_dir}/{dataset}_joint_knn.csv")
         
-        wandb.log_artifact(f"{dataset}_waveform_knn.csv", name=f"{dataset}_waveform_knn.csv", type=f"{dataset}_waveform_knn.csv")
-        wandb.log_artifact(f"{dataset}_isi_knn.csv", name=f"{dataset}_isi_knn.csv", type=f"{dataset}_isi_knn.csv")
-        wandb.log_artifact(f"{dataset}_joint_knn.csv", name=f"{dataset}_joint_knn.csv", type=f"{dataset}_joint_knn.csv")
+        wandb.log_artifact(f"{args.output_dir}/{dataset}_waveform_knn.csv", name=f"{dataset}_waveform_knn.csv", type=f"{dataset}_waveform_knn.csv")
+        wandb.log_artifact(f"{args.output_dir}/{dataset}_isi_knn.csv", name=f"{dataset}_isi_knn.csv", type=f"{dataset}_isi_knn.csv")
+        wandb.log_artifact(f"{args.output_dir}/{dataset}_joint_knn.csv", name=f"{dataset}_joint_knn.csv", type=f"{dataset}_joint_knn.csv")
         
         # Save embeddings for all data
         all_wf_dataloader = torch.utils.data.DataLoader(
@@ -583,13 +584,13 @@ def main():
         isi_embeddings_df["label"] = le.inverse_transform(supervised_labels.astype(int))
         joint_embeddings_df["label"] = le.inverse_transform(supervised_labels.astype(int))
         
-        wf_embeddings_df.to_csv(f"{dataset}_waveform_embeddings.csv")
-        isi_embeddings_df.to_csv(f"{dataset}_isi_embeddings.csv")
-        joint_embeddings_df.to_csv(f"{dataset}_joint_embeddings.csv")
+        wf_embeddings_df.to_csv(f"{args.output_dir}/{dataset}_waveform_embeddings.csv")
+        isi_embeddings_df.to_csv(f"{args.output_dir}/{dataset}_isi_embeddings.csv")
+        joint_embeddings_df.to_csv(f"{args.output_dir}/{dataset}_joint_embeddings.csv")
         
-        wandb.log_artifact(f"{dataset}_waveform_embeddings.csv", name=f"{dataset}_waveform_embeddings.csv", type=f"{dataset}_waveform_embeddings.csv")
-        wandb.log_artifact(f"{dataset}_isi_embeddings.csv", name=f"{dataset}_isi_embeddings.csv", type=f"{dataset}_isi_embeddings.csv")
-        wandb.log_artifact(f"{dataset}_joint_embeddings.csv", name=f"{dataset}_joint_embeddings.csv", type=f"{dataset}_joint_embeddings.csv")
+        wandb.log_artifact(f"{args.output_dir}/{dataset}_waveform_embeddings.csv", name=f"{dataset}_waveform_embeddings.csv", type=f"{dataset}_waveform_embeddings.csv")
+        wandb.log_artifact(f"{args.output_dir}/{dataset}_isi_embeddings.csv", name=f"{dataset}_isi_embeddings.csv", type=f"{dataset}_isi_embeddings.csv")
+        wandb.log_artifact(f"{args.output_dir}/{dataset}_joint_embeddings.csv", name=f"{dataset}_joint_embeddings.csv", type=f"{dataset}_joint_embeddings.csv")
         
         # Upload models if requested
         if args.upload_model:
@@ -784,9 +785,9 @@ def main():
         joint_dfs = {"embeddings": []}
         joint_dfs["embeddings"].extend(finetune_embeddings_joint)
         joint_df = pd.DataFrame(joint_dfs)
-        joint_df.to_csv(f"pretraining_{args.dataset}_joint_embeddings.csv")
+        joint_df.to_csv(f"{args.output_dir}/pretraining_{args.dataset}_joint_embeddings.csv")
         wandb.log_artifact(
-            f"pretraining_{args.dataset}_joint_embeddings.csv", 
+            f"{args.output_dir}/pretraining_{args.dataset}_joint_embeddings.csv", 
             name=f"pretraining_{args.dataset}_joint_embeddings.csv", 
             type=f"pretraining_{args.dataset}_joint_embeddings.csv"
         )
@@ -874,10 +875,10 @@ def main():
         
         # Set up callbacks for supervised training
         joint_checkpoint = pl.callbacks.ModelCheckpoint(
-            monitor="val_loss", save_top_k=1, mode="min"
+            dirpath='checkpoints', monitor="val_loss", save_top_k=1, mode="min"
         )
         joint_earlystop = pl.callbacks.EarlyStopping(
-            monitor="val_loss", patience=args.early_stopping_patience, mode="min"
+            dirpath='checkpoints', monitor="val_loss", patience=args.early_stopping_patience, mode="min"
         )
         lr_monitor_joint = pl.callbacks.LearningRateMonitor(logging_interval="step")
         
@@ -936,8 +937,8 @@ def main():
         # Save predictions and true labels
         joint_dfs = {"pred": le.inverse_transform(pred.astype(int)), "true": le.inverse_transform(label_val.astype(int))}
         joint_df = pd.DataFrame(joint_dfs)
-        joint_df.to_csv(f"{dataset}_joint_knn.csv")
-        wandb.log_artifact(f"{dataset}_joint_knn.csv", name=f"{dataset}_joint_knn.csv", type=f"{dataset}_joint_knn.csv")
+        joint_df.to_csv(f"{args.output_dir}/{dataset}_joint_knn.csv")
+        wandb.log_artifact(f"{args.output_dir}/{dataset}_joint_knn.csv", name=f"{dataset}_joint_knn.csv", type=f"{dataset}_joint_knn.csv")
         
         # Save embeddings for all data
         all_dataloader = torch.utils.data.DataLoader(
@@ -950,8 +951,8 @@ def main():
         all_embeddings = get_embeddings_multimodal(all_dataloader, supervised_joint_model)
         all_embeddings_df = pd.DataFrame(all_embeddings)
         all_embeddings_df["label"] = le.inverse_transform(supervised_labels.astype(int))
-        all_embeddings_df.to_csv(f"{dataset}_joint_embeddings.csv")
-        wandb.log_artifact(f"{dataset}_joint_embeddings.csv", name=f"{dataset}_joint_embeddings.csv", type=f"{dataset}_joint_embeddings.csv")
+        all_embeddings_df.to_csv(f"{args.output_dir}/{dataset}_joint_embeddings.csv")
+        wandb.log_artifact(f"{args.output_dir}/{dataset}_joint_embeddings.csv", name=f"{dataset}_joint_embeddings.csv", type=f"{dataset}_joint_embeddings.csv")
         
         # Upload model if requested
         if args.upload_model:
