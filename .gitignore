@@ -2,6 +2,7 @@
 scripts/train_model_api.py
 hippie/hippie_api.py
 /checkpoints/*
+/outputs/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -176,3 +177,27 @@ cython_debug/
 .pypirc
 
 wandb/*
+cellexplorer-celltype_isi_embeddings.csv
+cellexplorer-celltype_isi_knn.csv
+cellexplorer-celltype_joint_embeddings.csv
+cellexplorer-celltype_joint_knn.csv
+cellexplorer-celltype_waveform_embeddings.csv
+cellexplorer-celltype_waveform_knn.csv
+pretraining_cellexplorer-celltype_isi_embeddings.csv
+pretraining_cellexplorer-celltype_joint_embeddings.csv
+pretraining_cellexplorer-celltype_waveform_embeddings.csv
+HIPPIE final benchmarks w finetune without labels/6apwu7k4/checkpoints/epoch=0-step=31-v1.ckpt
+HIPPIE final benchmarks w finetune without labels/6apwu7k4/checkpoints/epoch=0-step=31.ckpt
+HIPPIE final benchmarks w finetune without labels/gsrakna3/checkpoints/epoch=0-step=31-v1.ckpt
+HIPPIE final benchmarks w finetune without labels/gsrakna3/checkpoints/epoch=0-step=31.ckpt
+HIPPIE final benchmarks w finetune without labels/hig52jd1/checkpoints/epoch=0-step=12-v1.ckpt
+HIPPIE final benchmarks w finetune without labels/hig52jd1/checkpoints/epoch=0-step=12.ckpt
+HIPPIE final benchmarks w finetune without labels/hig52jd1/checkpoints/epoch=0-step=31-v1.ckpt
+HIPPIE final benchmarks w finetune without labels/hig52jd1/checkpoints/epoch=0-step=31.ckpt
+HIPPIE final benchmarks w finetune without labels/hw0570gv/checkpoints/epoch=0-step=12-v1.ckpt
+HIPPIE final benchmarks w finetune without labels/hw0570gv/checkpoints/epoch=0-step=12.ckpt
+HIPPIE final benchmarks w finetune without labels/hw0570gv/checkpoints/epoch=0-step=31-v1.ckpt
+HIPPIE final benchmarks w finetune without labels/hw0570gv/checkpoints/epoch=0-step=31.ckpt
+HIPPIE final benchmarks w finetune without labels/wcwps98x/checkpoints/epoch=0-step=31-v1.ckpt
+HIPPIE final benchmarks w finetune without labels/wcwps98x/checkpoints/epoch=0-step=31.ckpt
+scripts/download_groundtruth_dandiset.ipynb
