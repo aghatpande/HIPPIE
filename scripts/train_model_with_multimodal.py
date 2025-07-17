@@ -184,8 +184,14 @@ def main():
         )
         
         # Define callbacks
-        wave_modelcheckpoint = pl.callbacks.ModelCheckpoint(monitor="val_loss", save_top_k=1, mode="min")
-        time_modelcheckpoint = pl.callbacks.ModelCheckpoint(monitor="val_loss", save_top_k=1, mode="min")
+        wave_modelcheckpoint = pl.callbacks.ModelCheckpoint(filename="wave_modelcheckpoint",
+                                                            monitor="val_loss", 
+                                                            save_top_k=1, 
+                                                            mode="min")
+        time_modelcheckpoint = pl.callbacks.ModelCheckpoint(filename="time_modelcheckpoint", 
+                                                            monitor="val_loss", 
+                                                            save_top_k=1, 
+                                                            mode="min")
         early_stop_wave = pl.callbacks.EarlyStopping(
             monitor="val_loss", patience=args.early_stopping_patience, mode="min"
         )
@@ -427,8 +433,8 @@ def main():
         time_model.load_state_dict(time_seq["state_dict"], strict=False)
         
         # Set up callbacks and loggers for supervised training
-        wave_modelcheckpoint = pl.callbacks.ModelCheckpoint(monitor="val_loss", save_top_k=1, mode="min")
-        time_modelcheckpoint = pl.callbacks.ModelCheckpoint(monitor="val_loss", save_top_k=1, mode="min")
+        wave_modelcheckpoint = pl.callbacks.ModelCheckpoint(monitor="val_loss", save_top_k=1, mode="min", filename="wave_modelcheckpoint")
+        time_modelcheckpoint = pl.callbacks.ModelCheckpoint(monitor="val_loss", save_top_k=1, mode="min", filename="time_modelcheckpoint")
         early_stop_wave = pl.callbacks.EarlyStopping(monitor="val_loss", patience=args.early_stopping_patience, mode="min")
         early_stop_time = pl.callbacks.EarlyStopping(monitor="val_loss", patience=args.early_stopping_patience, mode="min")
         lr_monitor_wave = pl.callbacks.LearningRateMonitor(logging_interval="step")
@@ -680,7 +686,7 @@ def main():
         )
         
         # Set up callbacks and trainer
-        joint_checkpoint = pl.callbacks.ModelCheckpoint(
+        joint_checkpoint = pl.callbacks.ModelCheckpoint(filename="joint_checkpoint.ckpt",
             monitor="val_loss", save_top_k=1, mode="min"
         )
         joint_earlystop = pl.callbacks.EarlyStopping(
@@ -874,7 +880,7 @@ def main():
         )
         
         # Set up callbacks for supervised training
-        joint_checkpoint = pl.callbacks.ModelCheckpoint(
+        joint_checkpoint = pl.callbacks.ModelCheckpoint(filename="joint_supervised_checkpoint.ckpt",
             dirpath='checkpoints', monitor="val_loss", save_top_k=1, mode="min"
         )
         joint_earlystop = pl.callbacks.EarlyStopping(
