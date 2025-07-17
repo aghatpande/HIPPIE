@@ -10,6 +10,54 @@ import numpy as np
 import umap
 import matplotlib.pyplot as plt
 import seaborn as sns
+import torch.nn.functional as F
+from torch.utils.data import Dataset
+
+
+class EphysDatasetWithSourceLabels(Dataset):
+    """Custom dataset that provides both class and source labels for inference."""
+    def __init__(self, waveforms, isi_dists, class_labels, source_label=0, mode="wave", normalize=True):
+        self.waveforms = np.array(waveforms)
+        self.isi_dists = np.array(isi_dists)
+        self.class_labels = np.array(class_labels)
+        self.source_label = source_label  # Single source label for all samples
+        assert mode in ("wave", "time")
+        self.mode = mode
+        assert len(self.waveforms) == len(self.isi_dists)
+        assert len(self.waveforms) == len(self.class_labels)
+        self.normalize = normalize
+
+    def __getitem__(self, idx):
+        waveform = torch.as_tensor(self.waveforms[idx, ...]).float()
+        isi_dist = torch.as_tensor(self.isi_dists[idx, ...]).float()
+        isi_dist = torch.log(isi_dist + 1)
+
+        class_label = torch.as_tensor(self.class_labels[idx]).long()
+        source_label = torch.as_tensor(self.source_label).long()
+        
+        # Combine class and source labels into a 2D tensor
+        labels = torch.stack([class_label, source_label])
+
+        if self.normalize:
+            min_val = np.min(waveform)
+            max_val = np.max(waveform)
+            waveform = (waveform - min_val) / (max_val - min_val)
+            waveform = waveform * 2 - 1
+            isi_dist = (isi_dist - isi_dist.mean()) / isi_dist.std()
+
+        waveform = waveform.view(1, 1, -1)
+        waveform = F.interpolate(waveform, size=(50,), mode="linear").view(1, -1)
+
+        isi_dist = isi_dist.view(1, 1, -1)
+        isi_dist = F.interpolate(isi_dist, size=(100,), mode="linear").view(1, -1)
+
+        if self.mode == "wave":
+            return waveform, labels
+        elif self.mode == "time":
+            return isi_dist, labels
+
+    def __len__(self):
+        return len(self.waveforms)
 
 # Parse command line arguments
 parser = argparse.ArgumentParser()
@@ -81,9 +129,9 @@ if labels is None:
     label_names = ["unknown"]
     print("No labels found, using dummy labels")
 
-# Create datasets
-dataset_wave = EphysDatasetLabeled(wf, isi, labels, mode="wave", normalize=False)
-dataset_time = EphysDatasetLabeled(wf, isi, labels, mode="time", normalize=False)
+# Create datasets with source labels (using source_label=0 as dummy)
+dataset_wave = EphysDatasetWithSourceLabels(wf, isi, labels, source_label=0, mode="wave", normalize=False)
+dataset_time = EphysDatasetWithSourceLabels(wf, isi, labels, source_label=0, mode="time", normalize=False)
 
 # Create data loaders
 data_loader_wave = torch.utils.data.DataLoader(
@@ -131,8 +179,7 @@ time_z_dim, time_class_hidden_dim, time_output_size, time_num_classes, time_num_
 print(f"Wave model params: z_dim={wave_z_dim}, class_hidden_dim={wave_class_hidden_dim}, output_size={wave_output_size}, num_classes={wave_num_classes}, num_sources={wave_num_sources}")
 print(f"Time model params: z_dim={time_z_dim}, class_hidden_dim={time_class_hidden_dim}, output_size={time_output_size}, num_classes={time_num_classes}, num_sources={time_num_sources}")
 
-# Define the number of sources and classes
-num_sources = 5  # Adjust based on your pretrained model
+# Use the actual number of sources and classes from the checkpoints
 num_classes = len(np.unique(labels))
 
 # Create models with correct architecture
@@ -141,14 +188,14 @@ wave_model = hippieUnimodalCVAE(
     z_dim=wave_z_dim, 
     output_size=wave_output_size, 
     class_hidden_dim=wave_class_hidden_dim, 
-    num_sources=num_sources, 
+    num_sources=wave_num_sources, 
     num_classes=num_classes
 )
 time_model = hippieUnimodalCVAE(
     z_dim=time_z_dim, 
     output_size=time_output_size, 
     class_hidden_dim=time_class_hidden_dim, 
-    num_sources=num_sources, 
+    num_sources=time_num_sources, 
     num_classes=num_classes
 )
 
