@@ -93,8 +93,8 @@ def main():
     num_sources = max(all_dataset_files.values()) + 1
     
     # Remove current dataset from pretraining
-    if "justacellular" in args.dataset:
-        dataset_files.pop("justacellular-mouse-s1-celltype", None)
+    if "juxtacellular" in args.dataset:
+        dataset_files.pop("juxtacellular-mouse-s1-celltype", None)
         dataset_files.pop("juxtacellular-mouse-s1-area", None)
     
     if "cellexplorer" in args.dataset:

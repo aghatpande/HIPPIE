@@ -16,7 +16,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "--z_dim",
     type=int,
-    default=64,
+    default=10,
     required=False,
     help="Dimensionality of the latent space"
 )
@@ -41,7 +41,7 @@ parser.add_argument(
 parser.add_argument(
     '--output-dir',
     type=str,
-    default="./embeddings",
+    default="./embeddings_results",
     help="Directory to save embeddings and visualizations"
 )
 
@@ -68,10 +68,10 @@ isi = isi.to_numpy()
 # Load metadata if available
 labels = None
 label_names = None
-if os.path.exists(f"datasets/{args.dataset}/metadata.csv"):
-    metadata = pd.read_csv(f"datasets/{args.dataset}/metadata.csv")
+if os.path.exists(f"datasets/{args.dataset}/labels.csv"):
+    metadata = pd.read_csv(f"datasets/{args.dataset}/labels.csv")
     if 'label' in metadata.columns:
-        labels = metadata['label'].to_numpy()
+        labels = metadata['label'].astype('category').cat.codes.to_numpy()
         label_names = metadata['label'].unique()
         print(f"Found {len(label_names)} unique labels: {label_names}")
 
@@ -93,25 +93,70 @@ data_loader_time = torch.utils.data.DataLoader(
     dataset_time, batch_size=128, shuffle=False
 )
 
+# Load model weights first to inspect architecture
+try:
+    wave_checkpoint = torch.load(args.wave_checkpoint, map_location=torch.device(accelerator))
+    time_checkpoint = torch.load(args.time_checkpoint, map_location=torch.device(accelerator))
+    print("Checkpoints loaded successfully")
+except Exception as e:
+    print(f"Error loading checkpoints: {e}")
+    exit(1)
+
+# Extract architecture parameters from checkpoint
+def extract_model_params_from_checkpoint(checkpoint):
+    """Extract model architecture parameters from checkpoint state_dict"""
+    state_dict = checkpoint["state_dict"]
+    
+    # Extract dims from checkpoint
+    z_dim = state_dict["model.z_mean.weight"].shape[0]
+    class_hidden_dim = state_dict["model.source_embedding.weight"].shape[1]
+    num_classes = state_dict["model.class_embedding.weight"].shape[0]
+    num_sources = state_dict["model.source_embedding.weight"].shape[0]
+    
+    # Extract output_size from decoder - use linear_out instead of linear
+    if "model.decoder.linear_out.weight" in state_dict:
+        output_size = state_dict["model.decoder.linear_out.weight"].shape[0]
+    elif "model.decoder.linear.weight" in state_dict:
+        output_size = state_dict["model.decoder.linear.weight"].shape[0]
+    else:
+        output_size = 50
+        print("Warning: decoder linear layer not found in checkpoint, using default 50")
+    
+    return z_dim, class_hidden_dim, output_size, num_classes, num_sources
+
+# Extract parameters for both models
+wave_z_dim, wave_class_hidden_dim, wave_output_size, wave_num_classes, wave_num_sources = extract_model_params_from_checkpoint(wave_checkpoint)
+time_z_dim, time_class_hidden_dim, time_output_size, time_num_classes, time_num_sources = extract_model_params_from_checkpoint(time_checkpoint)
+
+print(f"Wave model params: z_dim={wave_z_dim}, class_hidden_dim={wave_class_hidden_dim}, output_size={wave_output_size}, num_classes={wave_num_classes}, num_sources={wave_num_sources}")
+print(f"Time model params: z_dim={time_z_dim}, class_hidden_dim={time_class_hidden_dim}, output_size={time_output_size}, num_classes={time_num_classes}, num_sources={time_num_sources}")
+
 # Define the number of sources and classes
 num_sources = 5  # Adjust based on your pretrained model
 num_classes = len(np.unique(labels))
 
-# Load models
+# Create models with correct architecture
 print("Loading models from checkpoints...")
-wave_model = hippieUnimodalCVAE(z_dim=args.z_dim, output_size=50, class_hidden_dim=5, 
-                                num_sources=num_sources, num_classes=num_classes)
-time_model = hippieUnimodalCVAE(z_dim=args.z_dim, output_size=100, class_hidden_dim=5, 
-                                num_sources=num_sources, num_classes=num_classes)
+wave_model = hippieUnimodalCVAE(
+    z_dim=wave_z_dim, 
+    output_size=wave_output_size, 
+    class_hidden_dim=wave_class_hidden_dim, 
+    num_sources=num_sources, 
+    num_classes=num_classes
+)
+time_model = hippieUnimodalCVAE(
+    z_dim=time_z_dim, 
+    output_size=time_output_size, 
+    class_hidden_dim=time_class_hidden_dim, 
+    num_sources=num_sources, 
+    num_classes=num_classes
+)
 
 wave_model = hippieUnimodalEmbeddingModelCVAE(wave_model)
 time_model = hippieUnimodalEmbeddingModelCVAE(time_model)
 
 # Load model weights
 try:
-    wave_checkpoint = torch.load(args.wave_checkpoint, map_location=torch.device(accelerator))
-    time_checkpoint = torch.load(args.time_checkpoint, map_location=torch.device(accelerator))
-    
     # Handle potential class_embedding mismatch
     if "model.class_embedding.weight" in wave_checkpoint["state_dict"]:
         if wave_checkpoint["state_dict"]["model.class_embedding.weight"].size(0) != num_classes:
@@ -156,7 +201,7 @@ for name, embeddings in zip(['waveform', 'isi', 'joint'],
     if labels is not None:
         df['label'] = labels
         if label_names is not None:
-            df['label_name'] = pd.Categorical([label_names[i] for i in labels])
+            df['label_name'] = pd.Categorical([label_names[i.astype(int)] for i in labels])
     
     output_path = os.path.join(args.output_dir, f"{args.dataset}_{name}_embeddings.csv")
     df.to_csv(output_path, index=False)
