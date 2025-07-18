@@ -94,7 +94,7 @@ parser.add_argument(
 )
 
 args = parser.parse_args()
-accelerator = "gpu" if torch.cuda.is_available() else "cpu"
+accelerator = "cuda" if torch.cuda.is_available() else "cpu"
 
 
 # Ensure output directory exists
