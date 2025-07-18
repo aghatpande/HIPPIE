@@ -87,6 +87,7 @@ def main():
         "juxtacellular-mouse-s1-area": 4,
         "allenscope-neuropixel": 3,
         "neonatal-mouse-brain-slice": 2,
+        "openscope-glo-celltype": 5,
     }
     
     all_dataset_files = dataset_files.copy()

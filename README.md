@@ -56,6 +56,7 @@ Starting from the parent folder run the training script with the following param
 ```bash
 python scripts/train_model_with_multimodal.py --z_dim 10 --weight-decay 0.01 --learning-rate 0.001 --beta 0.5 --dataset cellexplorer-celltype --upload-model --wandb-tag no_curr_sup_pretrain_data --project "results_cell_type" --finetune-without-labels False --pretrain-max-epochs 1 --finetune-max-epochs 1 --supervised-max-epochs 1 --batch-size 512 --supervised-batch-size 64 --early-stopping-patience 30 --gradient-clip-val 1.0 --train-val-split 0.8 --finetune-split 0.1 --output-dir "outputs"
 
+python scripts/train_model_with_multimodal.py --z_dim 10 --weight-decay 0.01 --learning-rate 0.001 --beta 0.5 --dataset openscope-glo-celltype --upload-model --wandb-tag openscope_glo --project "results_openscope_glo" --finetune-without-labels False --pretrain-max-epochs 1 --finetune-max-epochs 1 --supervised-max-epochs 1 --batch-size 512 --supervised-batch-size 64 --early-stopping-patience 30 --gradient-clip-val 1.0 --train-val-split 0.8 --finetune-split 0.1 --output-dir "outputs"
 ```
 
 ## To get the embeddings and perform inference 
