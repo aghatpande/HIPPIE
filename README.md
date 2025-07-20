@@ -1,3 +1,9 @@
+## Acknowledgments and Contributions
+
+This project was originally created as part of the **NeuroDataRehack 2025** in collaboration with **Stephanie Prince** (@stephprince)[https://github.com/stephprince]. She created the hackathon project and wrote a majority of the modified codebase which, in turn, was originally concieved, coded and is maintained by the Braingeneers team (see below). I joined @stephprince's project during the hackathon and contributed a small portion.
+
+This repository is a **forked fork** of the original HIPPIE project, which can be found at [https://github.com/braingeneers/HIPPIE]. I am continuing development here to build upon @stephprince and my work during the hackathon.
+
 # HIPPIE
 
 High-dimensional Interpretation for Physiological Patterns in Intercellular Electrophysiology (HIPPIE), a cVAE framework designed for multimodal neuron classification and clustering by integrating extracellular action potential waveforms with spike-timing derived measurements.
