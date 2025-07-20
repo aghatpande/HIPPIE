@@ -1,4 +1,4 @@
-```## Acknowledgments and Contributions
+## Acknowledgments and Contributions
 
 This project was originally created as part of the [NeuroDataRehack 2025] in collaboration with **[Stephanie Prince]** ([@stephprince](https://github.com/stephprince)). She created the hackathon project and wrote a majority of the modified codebase which, in turn, was originally concieved, coded and is maintained by the Braingeneers team (see below). I joined @stephprince's project during the hackathon and contributed a small portion.
 
@@ -24,7 +24,7 @@ conda activate hippie
 
 # Install the repo
 pip install .
-
+```
 
 Installation should take less than 5 minutes in a normal desktop computer.
 
