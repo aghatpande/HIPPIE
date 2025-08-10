@@ -1,16 +1,79 @@
-Here’s a compact mindmap
+Here’s a concise overview of **HIPPIE**, a cutting-edge deep learning framework for classifying neurons using extracellular electrophysiological data:
 
+---
+
+### HIPPIE at a Glance
+
+* **HIPPIE** stands for *High‑dimensional Interpretation of Physiological Patterns In Extracellular recordings*. It's a multimodal, deep learning architecture combining **self‑supervised pre‑training** with **supervised fine‑tuning** to classify and cluster neurons based on electrophysiological signals.
+
+* The model is built around **conditional convolutional joint autoencoders**—more specifically, **parallel conditional VAEs (cVAEs)**—that process two key data modalities: the **average spike waveform** and the **interspike interval (ISI) distribution**, while conditioning on experimental technology type.
+
+---
+
+### Inputs, Architecture & Training
+
+* **Inputs**:
+
+  * **Waveform**: 2.5 ms average action potential per neuron (\~50 data points at 20 kHz; averaged over 100–500 spikes).
+  * **ISI distribution**: Time between spikes, binned over \~100 ms in 1 ms bins.
+  * **Recording technology**: Categorical metadata (e.g., probe type) used as a conditional variable.
+
+* **Model**:
+
+  * Each modality is handled by a **1D ResNet-based cVAE encoder and decoder**.
+  * Encoded latents from waveform & ISI are merged via an **MLP “mixture module”**, followed by decoders to reconstruct both modalities.
+
+* **Training Strategy**:
+
+  * **Self‑supervised pre‑training** over unlabeled datasets using a **leave‑one‑dataset‑out** approach for generalization.
+  * **Supervised fine‑tuning** on labeled data (80% train / 20% test), evaluated primarily with KNN probes for classification accuracy.
+
+* **Loss Function**:
+
+  * A standard VAE formulation combining **reconstruction loss** and a **KL-divergence** term, scaled by a hyperparameter β:
+
+  * For Gaussian encoders, the KL divergence has the closed-form:
+
+    where $\mu_j, \sigma_j$ are latent means and standard deviations.
+
+---
+
+### Results & Highlights
+
+* **Cell‑type discrimination** and **anatomical classification** both **outperformed other unsupervised methods**, showing strong alignment with known neuron types and brain regions across both in vivo and in vitro datasets.
+
+* The learned **latent space is interpretable**, organizing neurons along electrophysiological gradients and effectively correcting for batch effects across diverse experimental setups.
+
+---
+
+### Summary Table
+
+[cols="1,4", options="header"]
+|===
+| Component              | Key Details
+
+| **Purpose**            | Electrophysiological neuron classification & clustering (waveform + ISI)
+| **Modeling Technique** | Conditional VAEs (parallel, cVAEs) merging waveform/ISI via MLP
+| **Training**           | Self-supervised pretraining (leave-one-dataset-out) → supervised fine-tuning
+| **Loss**               | Reconstruction + β-weighted KL divergence
+| **Performance**        | Superior to baseline methods; robust across modalities and datasets
+| **Key Advantage**      | Handles variability/batch effects; produces meaningful, generalizable embeddings
+|===
+
+---
+
+Here’s a compact mindmap
 # HIPPIE (repo overview)
 
 * Purpose
 
-  * cVAE-based, multimodal neuron classification & clustering (waveform + ISI; tech-aware embeddings). ([GitHub][1])
+  * cVAE-based, multimodal neuron classification & clustering (waveform + ISI; tech-aware embeddings). 
 * Fork lineage
 
-  * Your repo is a fork-of-a-fork; original upstream is braingeneers/HIPPIE. ([GitHub][1])
+  * Your repo is a fork-of-a-fork; original upstream is braingeneers/HIPPIE. 
 * Quickstart (from README)
 
-  * `pip install .` inside a py3.10 env; deps in `pyproject.toml` / `requirements.txt`. ([GitHub][2])
+  * `pip install .` inside a py3.10 env; deps in `pyproject.toml` / `requirements.txt`. 
 
 ---
 
@@ -18,8 +81,8 @@ Here’s a compact mindmap
 
 * What it contains
 
-  * Model components: paired cVAEs (waveform encoder/decoder, ISI encoder/decoder) + “mixture” MLP to fuse latents. (Per project description/diagram.) ([GitHub][1])
-  * Training/eval utilities (Lightning modules, loss with β-KL + recon, loaders, KNN/MLP probes). (Implied by README + training CLI.) ([GitHub][2])
+  * Model components: paired cVAEs (waveform encoder/decoder, ISI encoder/decoder) + “mixture” MLP to fuse latents. (Per project description/diagram.) 
+  * Training/eval utilities (Lightning modules, loss with β-KL + recon, loaders, KNN/MLP probes). (Implied by README + training CLI.) 
 * Why it matters
 
   * This is the library you import when extending the model or replacing encoders/decoders.
@@ -31,10 +94,10 @@ Here’s a compact mindmap
 * `train_model_with_multimodal.py`
 
   * Arguments (from README): `--z_dim`, `--weight-decay`, `--learning-rate`, `--beta`, `--dataset`, `--pretrain-max-epochs`, `--finetune-max-epochs`, `--supervised-max-epochs`, batch sizes, splits, W\&B tags, etc.
-  * Example usage shown in README (two command examples). Outputs: Lightning `.ckpt` checkpoints + embeddings CSVs. ([GitHub][1])
+  * Example usage shown in README (two command examples). Outputs: Lightning `.ckpt` checkpoints + embeddings CSVs. 
 * `inference_from_trained_model.py`
 
-  * Loads trained checkpoints and writes embeddings for a dataset without labels. ([GitHub][2])
+  * Loads trained checkpoints and writes embeddings for a dataset without labels. 
 * Why it matters
 
   * These scripts define the repo’s “happy path” for experiments—minimal code, mostly flags.
@@ -45,7 +108,7 @@ Here’s a compact mindmap
 
 * Expected layout
 
-  * You add each dataset as a subfolder (naming convention noted in README). ([GitHub][2])
+  * You add each dataset as a subfolder (naming convention noted in README). 
 * Role in pipeline
 
   * Training script points to one dataset folder at a time via `--dataset`.
@@ -56,13 +119,13 @@ Here’s a compact mindmap
 
 * `README.md`
 
-  * Install, train, inference commands; short architecture summary. ([GitHub][1])
+  * Install, train, inference commands; short architecture summary. 
 * `Model_architecture.png`
 
-  * Diagram of the paired cVAEs + mixture module (referenced in README). ([GitHub][1])
+  * Diagram of the paired cVAEs + mixture module (referenced in README). 
 * `pyproject.toml`, `requirements.txt`
 
-  * Core deps: pandas, numpy, matplotlib, scikit-learn, pytorch-lightning, wandb, seaborn. ([GitHub][1])
+  * Core deps: pandas, numpy, matplotlib, scikit-learn, pytorch-lightning, wandb, seaborn. 
 * `dockerfile`
 
   * Containerized setup (useful for reproducibility on GPU nodes).
@@ -76,16 +139,16 @@ Here’s a compact mindmap
 
 * Inputs
 
-  * Spike-sorted units → mean waveform (2.5 ms window) + ISI histogram + recording tech as covariate (per project description). ([GitHub][1])
+  * Spike-sorted units → mean waveform (2.5 ms window) + ISI histogram + recording tech as covariate (per project description). 
 * Model
 
-  * Two 1D encoders/decoders (waveform / ISI) → fused latent via MLP mixture → β-VAE loss; Lightning training loops; probes (KNN and optionally MLP) for downstream tasks. ([GitHub][2])
+  * Two 1D encoders/decoders (waveform / ISI) → fused latent via MLP mixture → β-VAE loss; Lightning training loops; probes (KNN and optionally MLP) for downstream tasks. 
 * Modes
 
-  * Pretrain (self-supervised / covariate-aware), fine-tune (supervised), supervised probe; logging via Weights & Biases (flags in README). ([GitHub][2])
+  * Pretrain (self-supervised / covariate-aware), fine-tune (supervised), supervised probe; logging via Weights & Biases (flags in README). 
 * Outputs
 
-  * `.ckpt` files for each modality; CSV embeddings for eval/inference. ([GitHub][2])
+  * `.ckpt` files for each modality; CSV embeddings for eval/inference. 
 
 ---
 
@@ -93,12 +156,12 @@ Here’s a compact mindmap
 
 * Install & env
 
-  * Clone → create py3.10 env → `pip install .` (deps above). ([GitHub][2])
+  * Clone → create py3.10 env → `pip install .` (deps above). 
 * Train
 
-  * Drop dataset folder under `/datasets`, then run the provided training command with your preferred hyperparams (e.g., `--z_dim 10`, `--beta 0.5`, batch/splits). ([GitHub][2])
+  * Drop dataset folder under `/datasets`, then run the provided training command with your preferred hyperparams (e.g., `--z_dim 10`, `--beta 0.5`, batch/splits). 
 * Inference / embeddings
 
-  * Run `inference_from_trained_model.py` with checkpoints to export embeddings. ([GitHub][2])
+  * Run `inference_from_trained_model.py` with checkpoints to export embeddings. 
 
 ---
