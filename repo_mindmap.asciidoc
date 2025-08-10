@@ -31,11 +31,11 @@ Here’s a concise overview of **HIPPIE**, a cutting-edge deep learning framewor
 * **Loss Function**:
 
   * A standard VAE formulation combining **reconstruction loss** and a **KL-divergence** term, scaled by a hyperparameter β:
+L_{\text{VAE}} = E_{q_\phi(z|x)}[-\log p_\theta(x|z)] + \beta D_{KL}(q_\phi(z|x) \| p(z)) \]
 
-  * For Gaussian encoders, the KL divergence has the closed-form:
-
-    where $\mu_j, \sigma_j$ are latent means and standard deviations.
-
+For Gaussian encoders, the KL divergence has the closed-form:
+\frac{1}{2} \sum_{j=1}^J (\sigma_j^2 + \mu_j^2 - \log(\sigma_j^2) - 1) \]
+where μj,σjμj​,σj​ are latent means and standard deviations
 ---
 
 ### Results & Highlights
