@@ -1,0 +1,104 @@
+Here’s a compact mindmap
+
+# HIPPIE (repo overview)
+
+* Purpose
+
+  * cVAE-based, multimodal neuron classification & clustering (waveform + ISI; tech-aware embeddings). ([GitHub][1])
+* Fork lineage
+
+  * Your repo is a fork-of-a-fork; original upstream is braingeneers/HIPPIE. ([GitHub][1])
+* Quickstart (from README)
+
+  * `pip install .` inside a py3.10 env; deps in `pyproject.toml` / `requirements.txt`. ([GitHub][2])
+
+---
+
+## /hippie  ⟵ core Python package
+
+* What it contains
+
+  * Model components: paired cVAEs (waveform encoder/decoder, ISI encoder/decoder) + “mixture” MLP to fuse latents. (Per project description/diagram.) ([GitHub][1])
+  * Training/eval utilities (Lightning modules, loss with β-KL + recon, loaders, KNN/MLP probes). (Implied by README + training CLI.) ([GitHub][2])
+* Why it matters
+
+  * This is the library you import when extending the model or replacing encoders/decoders.
+
+---
+
+## /scripts  ⟵ CLIs you actually run
+
+* `train_model_with_multimodal.py`
+
+  * Arguments (from README): `--z_dim`, `--weight-decay`, `--learning-rate`, `--beta`, `--dataset`, `--pretrain-max-epochs`, `--finetune-max-epochs`, `--supervised-max-epochs`, batch sizes, splits, W\&B tags, etc.
+  * Example usage shown in README (two command examples). Outputs: Lightning `.ckpt` checkpoints + embeddings CSVs. ([GitHub][1])
+* `inference_from_trained_model.py`
+
+  * Loads trained checkpoints and writes embeddings for a dataset without labels. ([GitHub][2])
+* Why it matters
+
+  * These scripts define the repo’s “happy path” for experiments—minimal code, mostly flags.
+
+---
+
+## /datasets  ⟵ data drop-in folder
+
+* Expected layout
+
+  * You add each dataset as a subfolder (naming convention noted in README). ([GitHub][2])
+* Role in pipeline
+
+  * Training script points to one dataset folder at a time via `--dataset`.
+
+---
+
+## Root files
+
+* `README.md`
+
+  * Install, train, inference commands; short architecture summary. ([GitHub][1])
+* `Model_architecture.png`
+
+  * Diagram of the paired cVAEs + mixture module (referenced in README). ([GitHub][1])
+* `pyproject.toml`, `requirements.txt`
+
+  * Core deps: pandas, numpy, matplotlib, scikit-learn, pytorch-lightning, wandb, seaborn. ([GitHub][1])
+* `dockerfile`
+
+  * Containerized setup (useful for reproducibility on GPU nodes).
+* `LICENSE`, `.gitignore`, `.gitattributes`
+
+  * Standard project hygiene.
+
+---
+
+## Conceptual flow (pipeline)
+
+* Inputs
+
+  * Spike-sorted units → mean waveform (2.5 ms window) + ISI histogram + recording tech as covariate (per project description). ([GitHub][1])
+* Model
+
+  * Two 1D encoders/decoders (waveform / ISI) → fused latent via MLP mixture → β-VAE loss; Lightning training loops; probes (KNN and optionally MLP) for downstream tasks. ([GitHub][2])
+* Modes
+
+  * Pretrain (self-supervised / covariate-aware), fine-tune (supervised), supervised probe; logging via Weights & Biases (flags in README). ([GitHub][2])
+* Outputs
+
+  * `.ckpt` files for each modality; CSV embeddings for eval/inference. ([GitHub][2])
+
+---
+
+## How to use (practical)
+
+* Install & env
+
+  * Clone → create py3.10 env → `pip install .` (deps above). ([GitHub][2])
+* Train
+
+  * Drop dataset folder under `/datasets`, then run the provided training command with your preferred hyperparams (e.g., `--z_dim 10`, `--beta 0.5`, batch/splits). ([GitHub][2])
+* Inference / embeddings
+
+  * Run `inference_from_trained_model.py` with checkpoints to export embeddings. ([GitHub][2])
+
+---
